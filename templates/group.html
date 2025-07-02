@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group.name }} - Trata</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .group-title {
+            color: #333;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6a11cb;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        input, select {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #6a11cb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.2);
+        }
+        
+        .btn {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+            white-space: nowrap;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(106, 17, 203, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .members-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .member-tag {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .expenses-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .expenses-table th, 
+        .expenses-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .expenses-table th {
+            background: rgba(106, 17, 203, 0.1);
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .expenses-table tr:hover {
+            background: rgba(106, 17, 203, 0.05);
+        }
+        
+        .amount-cell {
+            font-weight: 600;
+            color: #ff4757;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            margin-left: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .expenses-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        .debt-summary {
+            background: rgba(106, 17, 203, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .debt-summary p {
+            margin: 8px 0;
+        }
+        
+        .transactions ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .transactions li {
+            padding: 12px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .debtor {
+            color: #ff4757;
+            font-weight: 600;
+        }
+        
+        .creditor {
+            color: #2ed573;
+            font-weight: 600;
+        }
+        
+        .amount {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="group-title">{{ group.name }}</h1>
+            <button class="btn" id="inviteBtn">Пригласить участников</button>
+        </div>
+        
+        <!-- Секция участников -->
+        <div class="card">
+            <h2 class="section-title">Участники</h2>
+            
+            <div class="members-list" id="members-list">
+                {% for member in members %}
+                <div class="member-tag">
+                    {{ member }}
+                    <button class="delete-btn" onclick="deleteMember('{{ group_id }}', '{{ member }}')">×</button>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="new-member" 
+                    placeholder="Введите имя участника"
+                >
+                <button class="btn" onclick="addMember('{{ group_id }}')">Добавить</button>
+            </div>
+        </div>
+        
+        <!-- Секция трат -->
+        <div class="card">
+            <h2 class="section-title">Траты</h2>
+            
+            <table class="expenses-table">
+                <thead>
+                    <tr>
+                        <th>Описание</th>
+                        <th>Участник</th>
+                        <th>Сумма</th>
+                        <th>Дата</th>
+                    </tr>
+                </thead>
+                <tbody id="expenses-body">
+                    {% for expense in expenses %}
+                    <tr>
+                        <td>{{ expense.description }}</td>
+                        <td>{{ expense.payer }}</td>
+                        <td class="amount-cell">{{ expense.amount }} ₽</td>
+                        <td>{{ expense.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="expense-description" 
+                    placeholder="Описание траты"
+                >
+                <input 
+                    type="number" 
+                    id="expense-amount" 
+                    placeholder="Сумма"
+                    step="0.01"
+                >
+                <select id="expense-payer">
+                    {% for member in members %}
+                    <option value="{{ member }}">{{ member }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn" onclick="addExpense('{{ group_id }}')">Добавить</button>
+            </div>
+        </div>
+        
+        <!-- Секция расчета -->
+        <div class="card">
+            <h2 class="section-title">Расчет долгов</h2>
+            <div id="debts-section">
+                <!-- Здесь будут отображаться расчеты -->
+                <p>Долги будут рассчитаны после добавления трат</p>
+            </div>
+            <button class="btn" onclick="calculateDebts('{{ group_id }}')" style="margin-top: 15px;">
+                Пересчитать долги
+            </button>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">Ссылка скопирована в буфер!</div>
+
+    <script>
+        // Функция для показа уведомления
+        function showToast(message = "Ссылка скопирована в буфер!") {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Добавление участника
+        async function addMember(groupId) {
+            const name = document.getElementById('new-member').value.trim();
+            
+            if (!name) {
+                showToast("Введите имя участника!");
+                return;
+            }
+            
+            const response = await fetch(`/add_member/${groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name })
+            });
+            
+            if (response.ok) {
+                // Добавляем участника в список
+                const membersList = document.getElementById('members-list');
+                const newMember = document.createElement('div');
+                newMember.className = 'member-tag';
+                newMember.innerHTML = `
+                    ${name}
+                    <button class="delete-btn" onclick="deleteMember('${groupId}', '${name}')">×</button>
+                `;
+                membersList.appendChild(newMember);
+                
+                // Добавляем участника в выпадающий список плательщиков
+                const payerSelect = document.getElementById('expense-payer');
+                const newOption = document.createElement('option');
+                newOption.value = name;
+                newOption.textContent = name;
+                payerSelect.appendChild(newOption);
+                
+                // Очищаем поле ввода
+                document.getElementById('new-member').value = '';
+                showToast(`Участник ${name} добавлен!`);
+            } else {
+                showToast("Ошибка при добавлении участника");
+            }
+        }
+        
+        // Удаление участника
+        async function deleteMember(groupId, memberName) {
+            if (!confirm(`Удалить участника ${memberName}?`)) return;
+            
+            const response = await fetch(`/delete_member/${groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: memberName })
+            });
+            
+            if (response.ok) {
+                // Находим и удаляем элемент участника
+                const members = document.querySelectorAll('.member-tag');
+                members.forEach(member => {
+                    if (member.textContent.includes(memberName)) {
+                        member.remove();
+                    }
+                });
+                
+                // Удаляем из выпадающего списка плательщиков
+                const payerSelect = document.getElementById('expense-payer');
+                for (let i = 0; i < payerSelect.options.length; i++) {
+                    if (payerSelect.options[i].value === memberName) {
+                        payerSelect.remove(i);
+                        break;
+                    }
+                }
+                
+                showToast(`Участник ${memberName} удалён!`);
+            } else {
+                showToast("Ошибка при удалении участника");
+            }
+        }
+        
+        // Добавление траты
+        async function addExpense(groupId) {
+            const description = document.getElementById('expense-description').value.trim();
+            const amount = document.getElementById('expense-amount').value;
+            const payer = document.getElementById('expense-payer').value;
+            
+            if (!description || !amount) {
+                showToast("Заполните описание и сумму!");
+                return;
+            }
+            
+            const response = await fetch(`/add_expense/${groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    description: description,
+                    amount: amount,
+                    payer: payer
+                })
+            });
+            
+            if (response.ok) {
+                // Добавляем трату в таблицу
+                const expensesBody = document.getElementById('expenses-body');
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${description}</td>
+                    <td>${payer}</td>
+                    <td class="amount-cell">${amount} ₽</td>
+                    <td>Только что</td>
+                `;
+                expensesBody.appendChild(newRow);
+                
+                // Очищаем поля ввода
+                document.getElementById('expense-description').value = '';
+                document.getElementById('expense-amount').value = '';
+                
+                showToast("Трата добавлена!");
+                
+                // Пересчитываем долги
+                calculateDebts(groupId);
+            } else {
+                showToast("Ошибка при добавлении траты");
+            }
+        }
+        
+        // Копирование ссылки-приглашения
+        document.getElementById('inviteBtn').addEventListener('click', () => {
+            const groupName = "{{ group.name }}";
+            const groupId = "{{ group_id }}";
+            const inviteLink = `${window.location.origin}/join/${groupId}?group=${encodeURIComponent(groupName)}`;
+            
+            navigator.clipboard.writeText(inviteLink).then(() => {
+                showToast("Ссылка скопирована в буфер обмена!");
+            });
+        });
+        
+        // Функция для расчета долгов
+        async function calculateDebts(groupId) {
+            // Запрашиваем актуальные данные с сервера
+            const response = await fetch(`/get_group_data/${groupId}`);
+            const data = await response.json();
+            
+            const members = data.members;
+            const expenses = data.expenses;
+            
+            // 1. Рассчитываем общую сумму всех расходов
+            const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+            
+            // 2. Рассчитываем среднюю стоимость на участника
+            const perPerson = totalExpenses / members.length;
+            
+            // 3. Рассчитываем баланс для каждого участника
+            const balances = {};
+            members.forEach(member => {
+                // Начальный баланс - каждый должен среднюю сумму
+                balances[member] = -perPerson;
+            });
+            
+            // 4. Добавляем расходы плательщикам
+            expenses.forEach(expense => {
+                if (balances[expense.payer] !== undefined) {
+                    balances[expense.payer] += parseFloat(expense.amount);
+                }
+            });
+            
+            // 5. Разделяем участников на должников и кредиторов
+            const debtors = [];
+            const creditors = [];
+            
+            for (const [member, balance] of Object.entries(balances)) {
+                if (balance < -0.01) { // Должник (с учетом погрешности)
+                    debtors.push({
+                        member: member,
+                        amount: Math.abs(balance)
+                    });
+                } else if (balance > 0.01) { // Кредитор
+                    creditors.push({
+                        member: member,
+                        amount: balance
+                    });
+                }
+            }
+            
+            // 6. Сортируем по сумме (от большего к меньшему)
+            debtors.sort((a, b) => b.amount - a.amount);
+            creditors.sort((a, b) => b.amount - a.amount);
+            
+            // 7. Вычисляем транзакции для погашения долгов
+            const transactions = [];
+            let debtorIndex = 0;
+            let creditorIndex = 0;
+            
+            while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+                const debtor = debtors[debtorIndex];
+                const creditor = creditors[creditorIndex];
+                
+                // Вычисляем сумму для текущей транзакции
+                const amount = Math.min(debtor.amount, creditor.amount);
+                
+                // Добавляем транзакцию
+                transactions.push({
+                    from: debtor.member,
+                    to: creditor.member,
+                    amount: amount.toFixed(2)
+                });
+                
+                // Обновляем остатки
+                debtor.amount -= amount;
+                creditor.amount -= amount;
+                
+                // Переходим к следующему участнику при полном погашении
+                if (debtor.amount < 0.01) debtorIndex++;
+                if (creditor.amount < 0.01) creditorIndex++;
+            }
+            
+            // 8. Отображаем результаты
+            renderDebts(transactions, totalExpenses, perPerson);
+        }
+        
+        // Функция для отображения долгов
+        function renderDebts(transactions, totalExpenses, perPerson) {
+            const debtsSection = document.getElementById('debts-section');
+            
+            if (transactions.length === 0) {
+                debtsSection.innerHTML = `
+                    <div class="debt-summary">
+                        <p>Все расходы сбалансированы! 🎉</p>
+                        <p>Общая сумма расходов: <strong>${totalExpenses.toFixed(2)} ₽</strong></p>
+                        <p>Средний расход на участника: <strong>${perPerson.toFixed(2)} ₽</strong></p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="debt-summary">
+                    <p>Общая сумма расходов: <strong>${totalExpenses.toFixed(2)} ₽</strong></p>
+                    <p>Средний расход на участника: <strong>${perPerson.toFixed(2)} ₽</strong></p>
+                </div>
+                <div class="transactions">
+                    <h3>Для погашения долгов:</h3>
+                    <ul>
+            `;
+            
+            transactions.forEach(transaction => {
+                html += `
+                    <li>
+                        <span class="debtor">${transaction.from}</span> должен 
+                        <span class="creditor">${transaction.to}</span>
+                        <span class="amount">${transaction.amount} ₽</span>
+                    </li>
+                `;
+            });
+            
+            html += `
+                    </ul>
+                </div>
+            `;
+            
+            debtsSection.innerHTML = html;
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            calculateDebts('{{ group_id }}');
+        });
+    </script>
+</body>
+</html>
