@@ -1,3 +1,16 @@
+import sys
+import subprocess
+import pkg_resources
+
+# Список необходимых зависимостей
+required = {'flask', 'streamlit', 'uuid'}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
+
+if missing:
+    print(f"Устанавливаем недостающие зависимости: {', '.join(missing)}")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", *missing])
+
 import streamlit as st
 import streamlit.components.v1 as components
 from flask import Flask, render_template, request, jsonify, redirect, url_for
