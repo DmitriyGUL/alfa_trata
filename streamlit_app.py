@@ -1,19 +1,33 @@
 import sys
 import subprocess
 import importlib
+import os
+import site
 
-# Список необходимых зависимостей
-required = {'flask', 'streamlit'}
+# Проверяем и устанавливаем зависимости с правами пользователя
+def install_packages():
+    packages = ['flask', 'streamlit']
+    for package in packages:
+        try:
+            importlib.import_module(package)
+        except ImportError:
+            print(f"Устанавливаем {package}...")
+            try:
+                # Пробуем установить в виртуальное окружение
+                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+            except:
+                # Если не получилось, устанавливаем для текущего пользователя
+                subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
+                
+                # Добавляем пользовательские site-packages в путь
+                user_site = site.getusersitepackages()
+                if user_site not in sys.path:
+                    sys.path.append(user_site)
 
-# Проверяем и устанавливаем отсутствующие модули
-for package in required:
-    try:
-        importlib.import_module(package)
-    except ImportError:
-        print(f"Устанавливаем недостающую зависимость: {package}")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+# Вызываем функцию установки
+install_packages()
 
-# Импортируем остальные модули
+# Теперь безопасно импортируем остальные модули
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from uuid import uuid4
 from datetime import datetime
@@ -125,13 +139,13 @@ def add_member(group_id):
 
 # Запускаем Flask в отдельном потоке
 def run_flask():
-    flask_app.run(port=5000, debug=False, use_reloader=False)
+    flask_app.run(port=5000, debug=False, use_reloader=False, threaded=True)
 
 # Создаем и запускаем поток Flask
 if not hasattr(st, 'flask_thread'):
     st.flask_thread = Thread(target=run_flask, daemon=True)
     st.flask_thread.start()
-    time.sleep(1)  # Даем время на запуск сервера
+    time.sleep(3)  # Даем больше времени на запуск сервера
 
 # Streamlit интерфейс
 st.title("Splitwise Clone")
