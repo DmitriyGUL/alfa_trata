@@ -1,21 +1,24 @@
 import sys
 import subprocess
-import pkg_resources
+import importlib
 
 # Список необходимых зависимостей
-required = {'flask', 'streamlit', 'uuid'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing = required - installed
+required = {'flask', 'streamlit'}
 
-if missing:
-    print(f"Устанавливаем недостающие зависимости: {', '.join(missing)}")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", *missing])
+# Проверяем и устанавливаем отсутствующие модули
+for package in required:
+    try:
+        importlib.import_module(package)
+    except ImportError:
+        print(f"Устанавливаем недостающую зависимость: {package}")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-import streamlit as st
-import streamlit.components.v1 as components
+# Импортируем остальные модули
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from uuid import uuid4
 from datetime import datetime
+import streamlit as st
+import streamlit.components.v1 as components
 from threading import Thread
 import time
 
