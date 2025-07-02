@@ -1,40 +1,46 @@
 import sys
 import subprocess
-import importlib
+import importlib.util
 import os
-import site
+from threading import Thread
+import time
 
-# Проверяем и устанавливаем зависимости с правами пользователя
-def install_packages():
-    packages = ['flask', 'streamlit']
-    for package in packages:
-        try:
-            importlib.import_module(package)
-        except ImportError:
-            print(f"Устанавливаем {package}...")
+# Определяем зависимости
+dependencies = ['flask', 'streamlit']
+
+# Функция для проверки и установки зависимостей
+def install_dependencies():
+    for package in dependencies:
+        # Проверяем, установлен ли пакет
+        spec = importlib.util.find_spec(package)
+        if spec is None:
+            print(f"Установка {package}...")
             try:
-                # Пробуем установить в виртуальное окружение
-                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-            except:
-                # Если не получилось, устанавливаем для текущего пользователя
+                # Устанавливаем в пользовательское пространство
                 subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
-                
-                # Добавляем пользовательские site-packages в путь
-                user_site = site.getusersitepackages()
+                # Добавляем путь к пользовательским пакетам
+                user_site = os.path.join(os.path.expanduser("~"), ".local", "lib", f"python{sys.version[:3]}", "site-packages")
                 if user_site not in sys.path:
                     sys.path.append(user_site)
+            except Exception as e:
+                print(f"Ошибка установки {package}: {e}")
+                # Пробуем установить глобально с sudo (если возможно)
+                if os.name == 'posix':  # Для Linux/macOS
+                    try:
+                        subprocess.check_call(['sudo', sys.executable, "-m", "pip", "install", package])
+                    except:
+                        print("Не удалось установить. Пожалуйста, установите вручную.")
+                        sys.exit(1)
 
-# Вызываем функцию установки
-install_packages()
+# Устанавливаем зависимости
+install_dependencies()
 
-# Теперь безопасно импортируем остальные модули
+# Теперь импортируем остальные модули
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from uuid import uuid4
 from datetime import datetime
 import streamlit as st
 import streamlit.components.v1 as components
-from threading import Thread
-import time
 
 # Создаем Flask-приложение
 flask_app = Flask(__name__)
